@@ -1,0 +1,9 @@
+add_library(AbicornCheckers
+    FieldChecker.cpp
+    InheritanceChecker.cpp
+    VtableChecker.cpp
+    FunctionChecker.cpp
+    MethodChecker.cpp
+    GlobalVariableChecker.cpp
+    ClassChecker.cpp
+)

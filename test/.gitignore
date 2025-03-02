@@ -1,0 +1,9 @@
+*
+!.gitignore
+!*/
+!**/*.cpp
+!**/*.py
+!**/*.cc
+!**/*.h
+!CMakeLists.txt
+!.clang-format

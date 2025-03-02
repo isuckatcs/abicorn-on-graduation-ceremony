@@ -1,0 +1,6 @@
+**/*.so
+**/*.out
+**/*.o
+**/build
+.vscode
+.cache
