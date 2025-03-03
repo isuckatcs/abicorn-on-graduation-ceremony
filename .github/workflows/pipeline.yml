@@ -1,0 +1,47 @@
+name: Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Coverage
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Build LLVM
+      run: |
+        mkdir third-party/llvm/build && cd third-party/llvm/build
+        sudo apt-get update && sudo apt-get install ninja-build
+        cmake ../llvm -G Ninja -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_PARALLEL_LINK_JOBS=1 -DBUILD_SHARED_LIBS=On -DLLVM_TARGETS_TO_BUILD="host" -DCMAKE_BUILD_TYPE=MinSizeRel && cmake --build .
+        cd ../../../
+
+    - name: Configure CMake
+      working-directory: ${{github.workspace}}
+      run: cmake -B ${{github.workspace}}/build -DLLVM_BUILD_DIR="third-party/llvm/build" -DBUILD_UNITTESTS=On -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
+
+    - name: Build
+      working-directory: ${{github.workspace}}
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: |
+        pip install lit
+        cmake --build . -t test
+        cmake --build . -t unit
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
