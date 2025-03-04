@@ -4,6 +4,7 @@
 #include "clang/Tooling/CompilationDatabase.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/InitLLVM.h"
+#include "llvm/Support/TargetSelect.h"
 
 #include "Abicorn.h"
 #include "AbicornContext.h"

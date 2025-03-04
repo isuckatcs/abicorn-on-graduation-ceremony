@@ -27,13 +27,6 @@ inline DiagnosticBuilder reportASTBuildError(DiagnosticsEngine &DiagEng) {
 ClangTool getCompilerInstance(const std::vector<std::string> &SourcePaths,
                               const CompilationDatabase &CompilationDB) {
   ClangTool Instance(CompilationDB, SourcePaths);
-
-  if (!ClangStdlibPath.empty()) {
-    const std::string IncludeStdlibFlag = "-I" + ClangStdlibPath;
-    auto Adjuster = getInsertArgumentAdjuster(IncludeStdlibFlag.c_str());
-    Instance.appendArgumentsAdjuster(Adjuster);
-  }
-
   return Instance;
 }
 

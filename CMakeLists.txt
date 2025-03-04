@@ -9,16 +9,8 @@ set(COVERAGE_FLAGS "-g -O0 --coverage -fprofile-arcs -ftest-coverage -fno-except
 SET(CMAKE_CXX_FLAGS_COVERAGE "${COVERAGE_FLAGS}")
 SET(CMAKE_C_FLAGS_COVERAGE "${COVERAGE_FLAGS}")
 
-if(NOT DEFINED LLVM_BUILD_DIR)
-    message(FATAL_ERROR "LLVM_BUILD_DIR must be specified")
-else()
-    set(LLVM_DIR "${LLVM_BUILD_DIR}/lib/cmake/llvm")
-    set(Clang_DIR "${LLVM_BUILD_DIR}/lib/cmake/clang")
-    message(STATUS "Using LLVM build directory: ${LLVM_BUILD_DIR}")
-endif()
-
-find_package(LLVM REQUIRED CONFIG)
-find_package(Clang REQUIRED CONFIG)
+find_package(LLVM 17.0.0 REQUIRED)
+find_package(Clang 17.0.0 REQUIRED)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")

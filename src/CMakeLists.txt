@@ -6,17 +6,16 @@ add_subdirectory("./LibBuilders")
 
 add_executable(abicorn main.cpp Abicorn.cpp AbicornContext.cpp)
 
-llvm_map_components_to_libnames(llvm_libs support frontendOpenMP)
+llvm_map_components_to_libnames(llvm_libs -17 support frontendOpenMP)
 
 target_link_libraries(abicorn
+    PRIVATE
     ${llvm_libs}
     clangAST
     clangASTMatchers
     clangBasic
-    clangFrontend
-    clangSerialization
     clangTooling
-    clangRewrite
+    clangToolingCore
     AbicornLibBuilders
     AbicornCheckers
     AbicornUtils

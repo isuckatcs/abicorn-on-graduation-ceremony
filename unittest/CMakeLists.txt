@@ -2,10 +2,11 @@ enable_testing()
 
 add_executable(unittest hash.cpp)
 
-llvm_map_components_to_libnames(llvm_libs support frontendOpenMP)
+llvm_map_components_to_libnames(llvm_libs_unittest -17 support frontendOpenMP)
 
 target_link_libraries(unittest
-    ${llvm_libs}
+    PRIVATE
+    ${llvm_libs_unittest}
     clangAST
     clangASTMatchers
     clangBasic
