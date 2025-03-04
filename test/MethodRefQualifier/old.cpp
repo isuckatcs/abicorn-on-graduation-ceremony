@@ -7,4 +7,6 @@ class C {
   void c() &&;
 
   void d();
+
+  void e() &;
 };

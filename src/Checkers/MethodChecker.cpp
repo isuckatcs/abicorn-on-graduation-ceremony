@@ -15,15 +15,12 @@ void MethodChecker::reportRefQualifierMissmatch(const CXXMethodDecl *Cur,
 
   auto PrepareRQStr = [](clang::RefQualifierKind RQ) -> std::string {
     switch (RQ) {
-
-    case clang::RQ_None:
-      return "no";
     case clang::RQ_LValue:
       return "'&'";
     case clang::RQ_RValue:
       return "'&&'";
     default:
-      llvm_unreachable("Unexpected ref-qualifier");
+      return "no";
     }
   };
 
@@ -209,6 +206,7 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
         !isa<CXXDestructorDecl>(CurMethod) && CheckMissingEnabled) {
 
       if (const auto *Ctor = dyn_cast<CXXConstructorDecl>(CurMethod)) {
+        // FIXME: reason better about constructors
         if (Ctor->isDefaultConstructor() || Ctor->isCopyOrMoveConstructor() ||
             Ctor->getNumParams() == 0)
           continue;

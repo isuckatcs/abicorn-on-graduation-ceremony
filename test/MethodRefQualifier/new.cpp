@@ -7,6 +7,8 @@ class C {
 
   void d() &;
   void d() &&;
+
+  void e();
 };
 
 // CHECK: old.cpp:3:8: warning: overload of 'a' not found in the new library [method-checker]
@@ -41,4 +43,13 @@ class C {
 // CHECK-NEXT:        ^
 // CHECK-NEXT: new.cpp:9:8: note: found similar method [method-checker]
 // CHECK-NEXT:   void d() &&;
+// CHECK-NEXT:        ^
+// CHECK-NEXT: new.cpp:11:8: warning: change in the ref-qualifier of method 'e' [method-checker]
+// CHECK-NEXT:   void e();
+// CHECK-NEXT:        ^
+// CHECK-NEXT: old.cpp:11:8: note: method 'e' is marked with '&' ref-qualifier in the old library [method-checker]
+// CHECK-NEXT:   void e() &;
+// CHECK-NEXT:        ^
+// CHECK-NEXT: new.cpp:11:8: note: method 'e' is marked with no ref-qualifier in the new library [method-checker]
+// CHECK-NEXT:   void e();
 // CHECK-NEXT:        ^
