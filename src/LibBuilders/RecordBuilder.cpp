@@ -12,10 +12,6 @@ void RecordBuilder::registerMatchers(MatchFinder &Finder) {
 void RecordBuilder::handleMatch(const MatchFinder::MatchResult &Result) {
   if (const auto *RD = Result.Nodes.getNodeAs<clang::CXXRecordDecl>(
           GeneralRecordMatcher::Id)) {
-    if (!RD->isThisDeclarationADefinition()) {
-      return;
-    }
-
     if (!RD->getName().empty())
       Data->addRecord(RD);
   }
