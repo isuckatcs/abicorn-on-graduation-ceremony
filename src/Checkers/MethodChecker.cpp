@@ -1,7 +1,6 @@
 #include "Checkers/MethodChecker.h"
 #include "Matchers/Matchers.h"
 #include "Utils/Hash.h"
-#include "Utils/Util.h"
 
 namespace abicorn {
 using namespace abicorn::matchers;

@@ -9,7 +9,6 @@
 #include "AbicornContext.h"
 #include "Checkers/CheckerStorage.h"
 #include "LibBuilders/LibBuilderStorage.h"
-#include "Utils/Util.h"
 
 namespace abicorn {
 
@@ -24,17 +23,12 @@ inline DiagnosticBuilder reportASTBuildError(DiagnosticsEngine &DiagEng) {
   return DiagEng.Report(ID);
 }
 
-ClangTool getCompilerInstance(const std::vector<std::string> &SourcePaths,
-                              const CompilationDatabase &CompilationDB) {
-  ClangTool Instance(CompilationDB, SourcePaths);
-  return Instance;
-}
-
 bool buildASTs(const std::vector<std::string> &SourcePaths,
                const CompilationDatabase &CompilationDB,
                DiagnosticsEngine &DiagEng,
                std::vector<std::unique_ptr<ASTUnit>> &ASTs) {
-  auto Compiler = getCompilerInstance(SourcePaths, CompilationDB);
+
+  ClangTool Compiler(CompilationDB, SourcePaths);
   auto *DiagConsumer = DiagEng.getClient();
 
   Compiler.setDiagnosticConsumer(DiagConsumer);
