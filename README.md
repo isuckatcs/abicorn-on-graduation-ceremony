@@ -1,3 +1,10 @@
+<div align="center">
+<img src="https://github.com/isuckatcs/abicorn-for-graduation/actions/workflows/pipeline.yml/badge.svg" />
+<a href="https://codecov.io/github/isuckatcs/abicorn-for-graduation" target="_blank"><img src="https://codecov.io/github/isuckatcs/abicorn-for-graduation/graph/badge.svg?token=ZWYOPB837H" /></a>
+<br>
+<br>
+</div>
+
 ![cover](img/definitely_not_ai_generated_cover.png)
 
 It's exactly like those graduation gift balloons, except this is a Clang Tool that detects library-level API and ABI compatibility breaking changes based on source code.
