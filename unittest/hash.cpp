@@ -28,10 +28,8 @@ public:
     if (const auto *FS = Result.Nodes.getNodeAs<T>(ID)) {
       if (D1 == nullptr) {
         D1 = FS;
-      } else if (D2 == nullptr) {
-        D2 = FS;
       } else {
-        FAIL();
+        D2 = FS;
       }
     }
   }

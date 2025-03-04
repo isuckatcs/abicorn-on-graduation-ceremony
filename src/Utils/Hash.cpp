@@ -39,13 +39,6 @@ void AbicornHash::Impl::addRecordDecl(const CXXRecordDecl *RD) {
   addTemplateSpecialization(RD);
 
   addDeclContext(RD->getDeclContext());
-
-  for (const auto *D : RD->decls()) {
-    if (const auto *TD = dyn_cast<TypedefDecl>(D))
-      if (isa<TemplateSpecializationType>(TD->getUnderlyingType())) {
-        Hash.AddSubDecl(D);
-      }
-  }
 }
 
 void AbicornHash::Impl::addFunctionDecl(const FunctionDecl *FD) {
@@ -78,11 +71,7 @@ std::size_t AbicornHash::Impl::calculateHash() { return Hash.CalculateHash(); }
 
 void AbicornHash::Impl::addDeclContext(const DeclContext *DC) {
   while (DC) {
-    if (const auto *FD = dyn_cast<FunctionDecl>(DC)) {
-      Hash.AddFunctionDecl(FD);
-      addTemplateDecl(FD->getDescribedFunctionTemplate());
-      addTemplateSpecialization(FD);
-    } else if (const auto *ND = dyn_cast<NamespaceDecl>(DC)) {
+    if (const auto *ND = dyn_cast<NamespaceDecl>(DC)) {
       Hash.AddDecl(ND);
     } else if (const auto *RD = dyn_cast<CXXRecordDecl>(DC)) {
       Hash.AddDeclarationName(RD->getDeclName());
