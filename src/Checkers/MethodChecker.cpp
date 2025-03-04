@@ -114,105 +114,121 @@ void MethodChecker::checkMethodChanges(const CXXMethodDecl *Cur,
 }
 
 void MethodChecker::check(const MatchFinder::MatchResult &Result) {
-  const auto *RD =
+  const auto *OldRecord =
       Result.Nodes.getNodeAs<clang::CXXRecordDecl>(GeneralRecordMatcher::Id);
 
-  if (!RD || !RD->hasDefinition() || !RD->isThisDeclarationADefinition() ||
-      RD->getDeclName().isEmpty())
+  if (!OldRecord || !OldRecord->hasDefinition() ||
+      !OldRecord->isThisDeclarationADefinition() ||
+      OldRecord->getDeclName().isEmpty())
     return;
 
-  auto OtherClasses = Data->getRecords();
+  auto NewRecords = Data->getRecords();
 
-  auto OtherIt = OtherClasses.find(RD);
-  if (OtherIt == OtherClasses.end())
+  auto NewRecordIt = NewRecords.find(OldRecord);
+  if (NewRecordIt == NewRecords.end())
     return;
 
-  const auto *OtherDecl = *OtherIt;
+  const auto *NewRecord = *NewRecordIt;
 
-  const auto &CurMethods = RD->methods();
-  const auto &CachedMethods = OtherDecl->methods();
+  const auto &OldMethods = OldRecord->methods();
+  const auto &NewMethods = NewRecord->methods();
+
   AbicornHash Hash;
+  std::set<const CXXMethodDecl *> PerfectMatches;
 
-  // Filter out the methods from the cached library, that are also in the
-  // traversed one.
-  std::set<const CXXMethodDecl *> PerfectMatchInCurrent;
-  for (const auto *CachedMethod : CachedMethods) {
-    for (const auto *CurMethod : CurMethods) {
+  for (const auto *OldMethod : OldMethods) {
+    // OldMethod->dump();
 
-      if (Hash(CurMethod) == Hash(CachedMethod) &&
-          CurMethod->getMethodQualifiers() ==
-              CachedMethod->getMethodQualifiers() &&
-          CurMethod->getRefQualifier() == CachedMethod->getRefQualifier()) {
-        PerfectMatchInCurrent.emplace(CachedMethod);
-        break;
-      }
-    }
-  }
-
-  for (const auto *CurMethod : CurMethods) {
-    MatchType MatchType = Unknown;
+    MatchType BestMatchType = Unknown;
     const clang::CXXMethodDecl *BestMatch = nullptr;
     std::vector<const clang::CXXMethodDecl *> Overloads;
 
-    for (const auto *CachedMethod : CachedMethods) {
-      std::string CurDeclName = CurMethod->getDeclName().getAsString();
-      std::string CachedDeclName = CachedMethod->getDeclName().getAsString();
+    for (const auto *NewMethod : NewMethods) {
+      // NewMethod->dump();
 
-      auto CurHash = Hash(CurMethod);
-      auto CachedHash = Hash(CachedMethod);
+      std::string OldDeclName = OldMethod->getDeclName().getAsString();
+      std::string NewDeclName = NewMethod->getDeclName().getAsString();
 
-      // Everything matches, we found the method.
-      if (MatchType < Perfect && CurHash == CachedHash &&
-          CurMethod->getMethodQualifiers() ==
-              CachedMethod->getMethodQualifiers() &&
-          CurMethod->getRefQualifier() == CachedMethod->getRefQualifier()) {
-        MatchType = Perfect;
-        BestMatch = CachedMethod;
-      }
-      // The return type, parameters, template specializations all match.
-      else if (MatchType < UnqualifiedOnly && CurHash == CachedHash &&
-               !PerfectMatchInCurrent.count(CachedMethod)) {
+      if (OldDeclName != NewDeclName)
+        continue;
+
+      Overloads.emplace_back(NewMethod);
+
+      // This method is already found in the old library, so we ignore it.
+      if (PerfectMatches.count(NewMethod))
+        continue;
+
+      // Only the names match so far.
+      MatchType MatchType = NameOnly;
+
+      auto OldHash = Hash(OldMethod);
+      auto NewHash = Hash(NewMethod);
+
+      if (OldHash == NewHash) {
+        // The return type, parameters, template specializations all match too.
         MatchType = UnqualifiedOnly;
-        BestMatch = CachedMethod;
-      }
-      // Only the names match.
-      else if (MatchType < NameOnly && CurDeclName == CachedDeclName &&
-               !PerfectMatchInCurrent.count(CachedMethod)) {
-        MatchType = NameOnly;
-        BestMatch = CachedMethod;
+
+        if (OldMethod->getMethodQualifiers() ==
+                NewMethod->getMethodQualifiers() &&
+            OldMethod->getRefQualifier() == NewMethod->getRefQualifier()) {
+          // Everything matches, we found the exact same method.
+          MatchType = Perfect;
+          PerfectMatches.emplace(NewMethod);
+        }
       }
 
-      if (CurDeclName == CachedDeclName) {
-        Overloads.emplace_back(CachedMethod);
-      }
+      if (MatchType < BestMatchType)
+        continue;
+
+      BestMatchType = MatchType;
+      BestMatch = NewMethod;
     }
 
-    if ((MatchType == Perfect ||
-         (MatchType == UnqualifiedOnly && Overloads.size() == 1)) &&
-        CompareExistingEnabled) {
-      checkMethodChanges(CurMethod, BestMatch);
+    if ((BestMatchType == Perfect ||
+         (BestMatchType == UnqualifiedOnly && Overloads.size() == 1))) {
+      checkMethodChanges(OldMethod, BestMatch);
       continue;
     }
 
-    if (!CurMethod->isVirtual() && !CurMethod->isTrivial() &&
-        !CurMethod->isImplicit() && !isa<CXXDestructorDecl>(CurMethod) &&
-        CheckMissingEnabled) {
+    if (OldMethod->isVirtual() || OldMethod->isTrivial() ||
+        OldMethod->isImplicit() || isa<CXXDestructorDecl>(OldMethod))
+      continue;
 
-      if (const auto *Ctor = dyn_cast<CXXConstructorDecl>(CurMethod)) {
-        // FIXME: reason better about constructors
-        if (Ctor->isDefaultConstructor() || Ctor->isCopyOrMoveConstructor() ||
-            Ctor->getNumParams() == 0)
-          continue;
-      }
+    if (const auto *Ctor = dyn_cast<CXXConstructorDecl>(OldMethod)) {
+      // FIXME: reason better about constructors
+      if (Ctor->isDefaultConstructor() || Ctor->isCopyOrMoveConstructor() ||
+          Ctor->getNumParams() == 0)
+        continue;
+    }
 
-      if (Overloads.empty()) {
-        reportMissingMethod(CurMethod);
-      } else {
-        reportMissingOverload(CurMethod);
-        for (const auto &O : Overloads) {
-          reportMissingNote(O);
-        }
-      }
+    if (Overloads.empty()) {
+      reportMissingMethod(OldMethod);
+      continue;
+    }
+
+    reportMissingOverload(OldMethod);
+    for (const auto &O : Overloads) {
+      reportMissingNote(O);
+    }
+  }
+
+  const CXXDestructorDecl *OldDtor = OldRecord->getDestructor();
+  const CXXDestructorDecl *NewDtor = NewRecord->getDestructor();
+
+  if (!OldDtor && NewDtor && !NewDtor->isVirtual()) {
+    if (NewDtor->isDeleted()) {
+      diag(NewDtor->getLocation(),
+           "the implicit destructor of '%0' is deleted in the new library",
+           &NewDtor->getASTContext())
+          << NewRecord->getName();
+    }
+
+    if (NewDtor->getAccess() != clang::AS_public) {
+      diag(NewDtor->getLocation(),
+           "the implicit destructor of '%0' is replaced with a non-public "
+           "destructor in the new library",
+           &NewDtor->getASTContext())
+          << NewRecord->getName();
     }
   }
 }
