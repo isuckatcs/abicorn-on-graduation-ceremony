@@ -56,6 +56,21 @@ void MethodChecker::reportAccessModifierMissmatch(const CXXMethodDecl *Cur,
       << Name << getContext().getAccessStr(Cached->getAccess()) << "new";
 }
 
+void MethodChecker::reportMethodDeleted(const CXXMethodDecl *Cur,
+                                        const CXXMethodDecl *Cached) {
+  const std::string Name = Cur->getNameAsString();
+
+  diag(Cached->getLocation(),
+       "method '%0' is marked deleted in the new library",
+       &Cached->getASTContext())
+      << Name;
+
+  diag(Cur->getLocation(),
+       "method '%0' is not marked deleted in the old library",
+       &Cur->getASTContext(), DiagnosticIDs::Note)
+      << Name;
+}
+
 void MethodChecker::reportMissingMethod(const CXXMethodDecl *Decl) {
   diag(Decl->getLocation(), "method '%0' not found in the new library",
        &Decl->getASTContext())
@@ -94,6 +109,11 @@ void MethodChecker::reportChangeInQualifier(const CXXMethodDecl *Cur,
 
 void MethodChecker::checkMethodChanges(const CXXMethodDecl *Cur,
                                        const CXXMethodDecl *Cached) {
+  if (!Cur->isDeleted() && Cached->isDeleted()) {
+    reportMethodDeleted(Cur, Cached);
+    return;
+  }
+
   if (Cur->isConst() != Cached->isConst())
     reportChangeInQualifier(Cur, Cached, "const", Cur->isConst());
 
@@ -111,6 +131,69 @@ void MethodChecker::checkMethodChanges(const CXXMethodDecl *Cur,
 
   if (Cur->getAccess() != Cached->getAccess())
     reportAccessModifierMissmatch(Cur, Cached);
+}
+
+void MethodChecker::checkDestructor(const CXXRecordDecl *OldRecord,
+                                    const CXXRecordDecl *NewRecord) {
+  const CXXDestructorDecl *OldDtor = OldRecord->getDestructor();
+  const CXXDestructorDecl *NewDtor = NewRecord->getDestructor();
+
+  if (!OldDtor && NewDtor && !NewDtor->isVirtual()) {
+    if (NewDtor->isDeleted()) {
+      diag(NewDtor->getLocation(),
+           "the implicit destructor of '%0' is deleted in the new library",
+           &NewDtor->getASTContext())
+          << NewRecord->getName();
+    }
+
+    if (NewDtor->getAccess() != clang::AS_public) {
+      diag(NewDtor->getLocation(),
+           "the implicit destructor of '%0' is replaced with a non-public "
+           "destructor in the new library",
+           &NewDtor->getASTContext())
+          << NewRecord->getName();
+    }
+  }
+}
+
+void MethodChecker::checkDefaultConstructor(const CXXRecordDecl *OldRecord,
+                                            const CXXRecordDecl *NewRecord) {
+  if (!OldRecord->needsImplicitDefaultConstructor())
+    return;
+
+  if (!NewRecord->hasDefaultConstructor()) {
+    diag(NewRecord->getLocation(),
+         "the implicit default constructor of '%0' is removed in the new "
+         "library",
+         &NewRecord->getASTContext())
+        << NewRecord->getName();
+    return;
+  }
+
+  const CXXConstructorDecl *NewDefaultCtor = nullptr;
+  for (auto &&Ctor : NewRecord->ctors()) {
+    if (Ctor->isDefaultConstructor())
+      NewDefaultCtor = Ctor;
+  }
+
+  if (!NewDefaultCtor)
+    return;
+
+  if (NewDefaultCtor->isDeleted()) {
+    diag(NewDefaultCtor->getLocation(),
+         "the default constructor of '%0' is deleted in the new library",
+         &NewDefaultCtor->getASTContext())
+        << NewRecord->getName();
+    return;
+  }
+
+  if (NewDefaultCtor->getAccess() != AS_public) {
+    diag(NewDefaultCtor->getLocation(),
+         "the default constructor of '%0' is no longer public the new library",
+         &NewDefaultCtor->getASTContext())
+        << NewRecord->getName();
+    return;
+  }
 }
 
 void MethodChecker::check(const MatchFinder::MatchResult &Result) {
@@ -137,15 +220,11 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
   std::set<const CXXMethodDecl *> PerfectMatches;
 
   for (const auto *OldMethod : OldMethods) {
-    // OldMethod->dump();
-
     MatchType BestMatchType = Unknown;
     const clang::CXXMethodDecl *BestMatch = nullptr;
     std::vector<const clang::CXXMethodDecl *> Overloads;
 
     for (const auto *NewMethod : NewMethods) {
-      // NewMethod->dump();
-
       std::string OldDeclName = OldMethod->getDeclName().getAsString();
       std::string NewDeclName = NewMethod->getDeclName().getAsString();
 
@@ -195,9 +274,8 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
       continue;
 
     if (const auto *Ctor = dyn_cast<CXXConstructorDecl>(OldMethod)) {
-      // FIXME: reason better about constructors
-      if (Ctor->isDefaultConstructor() || Ctor->isCopyOrMoveConstructor() ||
-          Ctor->getNumParams() == 0)
+      if (Ctor->isDefaultConstructor() &&
+          NewRecord->needsImplicitDefaultConstructor())
         continue;
     }
 
@@ -212,25 +290,8 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
     }
   }
 
-  const CXXDestructorDecl *OldDtor = OldRecord->getDestructor();
-  const CXXDestructorDecl *NewDtor = NewRecord->getDestructor();
-
-  if (!OldDtor && NewDtor && !NewDtor->isVirtual()) {
-    if (NewDtor->isDeleted()) {
-      diag(NewDtor->getLocation(),
-           "the implicit destructor of '%0' is deleted in the new library",
-           &NewDtor->getASTContext())
-          << NewRecord->getName();
-    }
-
-    if (NewDtor->getAccess() != clang::AS_public) {
-      diag(NewDtor->getLocation(),
-           "the implicit destructor of '%0' is replaced with a non-public "
-           "destructor in the new library",
-           &NewDtor->getASTContext())
-          << NewRecord->getName();
-    }
-  }
+  checkDestructor(OldRecord, NewRecord);
+  checkDefaultConstructor(OldRecord, NewRecord);
 }
 
 } // namespace abicorn

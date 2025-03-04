@@ -39,6 +39,15 @@ private:
 
   void reportAccessModifierMissmatch(const CXXMethodDecl *From,
                                      const CXXMethodDecl *To);
+
+  void reportMethodDeleted(const CXXMethodDecl *Cur,
+                           const CXXMethodDecl *Cached);
+
+  void checkDestructor(const CXXRecordDecl *OldRecord,
+                       const CXXRecordDecl *NewRecord);
+
+  void checkDefaultConstructor(const CXXRecordDecl *OldRecord,
+                               const CXXRecordDecl *NewRecord);
 };
 } // namespace abicorn
 
