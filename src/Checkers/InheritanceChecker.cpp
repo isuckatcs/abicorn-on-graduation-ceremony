@@ -1,5 +1,4 @@
 #include <sstream>
-#include <vector>
 
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/ASTStructuralEquivalence.h"
@@ -40,7 +39,7 @@ inline BaseClassInfo getBaseClassInfo(const CXXRecordDecl *Class,
   return {};
 }
 
-inline std::string getClassNameAsString(const CXXRecordDecl *RD) {
+static std::string getClassNameAsString(const CXXRecordDecl *RD) {
   std::stringstream SS;
 
   if (RD->isClass())
