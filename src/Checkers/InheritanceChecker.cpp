@@ -48,13 +48,13 @@ void InheritanceChecker::reportChangeInBaseClassOrder(
 
   diag(Cached.getBaseTypeLoc(), "change in base class order", &CachedASTCtx);
 
-  diag(Cur.getBaseTypeLoc(), "'%0' is at index %1 in the %2 library ",
+  diag(Cur.getBaseTypeLoc(), "'%0' is at index %1 in the old library ",
        &CurASTCtx, DiagnosticIDs::Note)
-      << Name << CurIdx << getContext().getTraversedLibraryStr();
+      << Name << CurIdx;
 
-  diag(Cached.getBaseTypeLoc(), "'%0' is at index %1 in the %2 library ",
+  diag(Cached.getBaseTypeLoc(), "'%0' is at index %1 in the new library ",
        &CachedASTCtx, DiagnosticIDs::Note)
-      << Name << BaseIdx << getContext().getCachedLibraryStr();
+      << Name << BaseIdx;
 }
 
 void InheritanceChecker::reportChangeInBaseClassVirtuality(
@@ -67,16 +67,14 @@ void InheritanceChecker::reportChangeInBaseClassVirtuality(
   diag(Cached.getBaseTypeLoc(), "change in base class virtuality",
        &CachedASTCtx);
 
-  diag(Cur.getBaseTypeLoc(), "'%0' is inherited %1virtually in the %2 library",
+  diag(Cur.getBaseTypeLoc(), "'%0' is inherited %1virtually in the old library",
        &CurASTCtx, DiagnosticIDs::Note)
-      << Name << (CurIsVirtual ? "" : "non-")
-      << getContext().getTraversedLibraryStr();
+      << Name << (CurIsVirtual ? "" : "non-");
 
   diag(Cached.getBaseTypeLoc(),
-       "'%0' is inherited %1virtually in the %2 library", &CachedASTCtx,
+       "'%0' is inherited %1virtually in the new library", &CachedASTCtx,
        DiagnosticIDs::Note)
-      << Name << (CurIsVirtual ? "non-" : "")
-      << getContext().getCachedLibraryStr();
+      << Name << (CurIsVirtual ? "non-" : "");
 }
 
 void InheritanceChecker::reportAddedBaseClass(
@@ -89,13 +87,13 @@ void InheritanceChecker::reportAddedBaseClass(
   diag(Cached->getLocation(), "change in base class hierarchy",
        &Cached->getASTContext());
 
-  diag(Cur->getLocation(), "'%0' is not derived from '%1' in the %2 library",
+  diag(Cur->getLocation(), "'%0' is not derived from '%1' in the old library",
        &Cur->getASTContext(), DiagnosticIDs::Note)
-      << ClassName << BaseName << getContext().getTraversedLibraryStr();
+      << ClassName << BaseName;
 
-  diag(Base.getBaseTypeLoc(), "'%0' is derived from '%1' in the %2 library",
+  diag(Base.getBaseTypeLoc(), "'%0' is derived from '%1' in the new library",
        &Cached->getASTContext(), DiagnosticIDs::Note)
-      << ClassName << BaseName << getContext().getCachedLibraryStr();
+      << ClassName << BaseName;
 }
 
 void InheritanceChecker::reportRemovedBaseClass(
@@ -108,13 +106,14 @@ void InheritanceChecker::reportRemovedBaseClass(
   diag(Cached->getLocation(), "change in base class hierarchy",
        &Cached->getASTContext());
 
-  diag(Base.getBaseTypeLoc(), "'%0' is derived from '%1' in the %2 library",
+  diag(Base.getBaseTypeLoc(), "'%0' is derived from '%1' in the old library",
        &Cur->getASTContext(), DiagnosticIDs::Note)
-      << ClassName << BaseName << getContext().getTraversedLibraryStr();
+      << ClassName << BaseName;
 
-  diag(Cached->getLocation(), "'%0' is not derived from '%1' in the %2 library",
+  diag(Cached->getLocation(),
+       "'%0' is not derived from '%1' in the new library",
        &Cached->getASTContext(), DiagnosticIDs::Note)
-      << ClassName << BaseName << getContext().getCachedLibraryStr();
+      << ClassName << BaseName;
 }
 
 void InheritanceChecker::reportChangeInParent(
@@ -126,9 +125,9 @@ void InheritanceChecker::reportChangeInParent(
        "inheriting from class with modified base class hierarchy", &CurASTCtx);
 
   diag(Cur.getBaseTypeLoc(),
-       "the base class hierarchy of '%0' has changed in the %1 library",
+       "the base class hierarchy of '%0' has changed in the new library",
        &CurASTCtx, DiagnosticIDs::Note)
-      << Name << getContext().getCachedLibraryStr();
+      << Name;
 }
 
 void InheritanceChecker::reportChangeInBaseAccessSpecifier(
@@ -142,13 +141,12 @@ void InheritanceChecker::reportChangeInBaseAccessSpecifier(
 
   const char *FormatStr = "'%0' is inherited as '%1' in the '%2' library";
   diag(Cur.getBaseTypeLoc(), FormatStr, &CurASTCtx, clang::DiagnosticIDs::Note)
-      << Name << getContext().getAccessStr(Cur.getAccessSpecifier())
-      << getContext().getTraversedLibraryStr();
+      << Name << getContext().getAccessStr(Cur.getAccessSpecifier()) << "old";
 
   diag(Cached.getBaseTypeLoc(), FormatStr, &CachedASTCtx,
        clang::DiagnosticIDs::Note)
       << Name << getContext().getAccessStr(Cached.getAccessSpecifier())
-      << getContext().getCachedLibraryStr();
+      << "new";
 }
 
 void InheritanceChecker::registerMatchers(MatchFinder &Finder) {

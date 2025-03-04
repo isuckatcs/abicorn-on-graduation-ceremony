@@ -37,10 +37,8 @@ std::string AbicornContext::getAccessStr(const clang::AccessSpecifier &AS) {
     return "protected";
   case AS_private:
     return "private";
-  case AS_none:
-    return "none";
   default:
-    llvm_unreachable("Unknown access specifier");
+    return "none";
   };
 }
 

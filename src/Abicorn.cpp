@@ -1,4 +1,3 @@
-#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -123,9 +122,6 @@ void runAbicorn(AbicornContext &Context, const AbicornOptions &Options,
 
   // Pass 2:
   //  - Compare the extracted data with the old library.
-  Context.setTraversedLibrary(Lib::Old);
-  Context.setCachedLibrary(Lib::New);
-
   Pass Pass2(OldASTs, Context);
   Pass2.addCheckers(NewData);
   Pass2.run();

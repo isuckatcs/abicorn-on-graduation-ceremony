@@ -32,13 +32,11 @@ void MethodChecker::reportRefQualifierMissmatch(const CXXMethodDecl *Cur,
       "method '%0' is marked with %1 ref-qualifier in the %2 library";
 
   diag(Cur->getLocation(), Format, &Cur->getASTContext(), DiagnosticIDs::Note)
-      << Name << PrepareRQStr(Cur->getRefQualifier())
-      << getContext().getTraversedLibraryStr();
+      << Name << PrepareRQStr(Cur->getRefQualifier()) << "old";
 
   diag(Cached->getLocation(), Format, &Cached->getASTContext(),
        DiagnosticIDs::Note)
-      << Name << PrepareRQStr(Cached->getRefQualifier())
-      << getContext().getCachedLibraryStr();
+      << Name << PrepareRQStr(Cached->getRefQualifier()) << "new";
 }
 
 void MethodChecker::reportAccessModifierMissmatch(const CXXMethodDecl *Cur,
@@ -51,25 +49,23 @@ void MethodChecker::reportAccessModifierMissmatch(const CXXMethodDecl *Cur,
 
   diag(Cur->getLocation(), "method '%0' is declared '%1' in the %2 library",
        &Cur->getASTContext(), DiagnosticIDs::Note)
-      << Name << getContext().getAccessStr(Cur->getAccess())
-      << getContext().getTraversedLibraryStr();
+      << Name << getContext().getAccessStr(Cur->getAccess()) << "old";
 
   diag(Cached->getLocation(), "method '%0' is declared '%1' in the %2 library",
        &Cached->getASTContext(), DiagnosticIDs::Note)
-      << Name << getContext().getAccessStr(Cached->getAccess())
-      << getContext().getCachedLibraryStr();
+      << Name << getContext().getAccessStr(Cached->getAccess()) << "new";
 }
 
 void MethodChecker::reportMissingMethod(const CXXMethodDecl *Decl) {
-  diag(Decl->getLocation(), "method '%0' not found in the %1 library",
+  diag(Decl->getLocation(), "method '%0' not found in the new library",
        &Decl->getASTContext())
-      << Decl->getNameAsString() << getContext().getCachedLibraryStr();
+      << Decl->getNameAsString();
 }
 
 void MethodChecker::reportMissingOverload(const CXXMethodDecl *Decl) {
-  diag(Decl->getLocation(), "overload of '%0' not found in the %1 library",
+  diag(Decl->getLocation(), "overload of '%0' not found in the new library",
        &Decl->getASTContext())
-      << Decl->getNameAsString() << getContext().getCachedLibraryStr();
+      << Decl->getNameAsString();
 }
 
 void MethodChecker::reportMissingNote(const CXXMethodDecl *Decl) {
@@ -87,15 +83,13 @@ void MethodChecker::reportChangeInQualifier(const CXXMethodDecl *Cur,
        &Cached->getASTContext())
       << Qualifier << Name;
 
-  diag(Cur->getLocation(), "'%0' %1 '%2' in the %3 library",
+  diag(Cur->getLocation(), "'%0' %1 '%2' in the old library",
        &Cur->getASTContext(), clang::DiagnosticIDs::Note)
-      << Name << (CurIsQualified ? "is" : "is not") << Qualifier
-      << getContext().getTraversedLibraryStr();
+      << Name << (CurIsQualified ? "is" : "is not") << Qualifier;
 
-  diag(Cached->getLocation(), "'%0' %1 '%2' in the %3 library",
+  diag(Cached->getLocation(), "'%0' %1 '%2' in the new library",
        &Cached->getASTContext(), clang::DiagnosticIDs::Note)
-      << Name << (CurIsQualified ? "is not" : "is") << Qualifier
-      << getContext().getCachedLibraryStr();
+      << Name << (CurIsQualified ? "is not" : "is") << Qualifier;
 }
 
 void MethodChecker::checkMethodChanges(const CXXMethodDecl *Cur,
@@ -201,9 +195,8 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
     }
 
     if (!CurMethod->isVirtual() && !CurMethod->isTrivial() &&
-        !CurMethod->isImplicit() &&
-        getContext().getTraversedLibrary() == Lib::Old &&
-        !isa<CXXDestructorDecl>(CurMethod) && CheckMissingEnabled) {
+        !CurMethod->isImplicit() && !isa<CXXDestructorDecl>(CurMethod) &&
+        CheckMissingEnabled) {
 
       if (const auto *Ctor = dyn_cast<CXXConstructorDecl>(CurMethod)) {
         // FIXME: reason better about constructors
