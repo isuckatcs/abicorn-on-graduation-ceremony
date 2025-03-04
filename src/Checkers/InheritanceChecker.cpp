@@ -18,8 +18,8 @@ struct BaseClassInfo {
   bool Found = false;
 };
 
-inline BaseClassInfo getBaseClassInfo(const CXXRecordDecl *Class,
-                                      const CXXBaseSpecifier &Base) {
+BaseClassInfo getBaseClassInfo(const CXXRecordDecl *Class,
+                               const CXXBaseSpecifier &Base) {
   ODRHash BaseHash;
   BaseHash.AddQualType(Base.getType());
   size_t BaseHashVal = BaseHash.CalculateHash();
@@ -38,38 +38,6 @@ inline BaseClassInfo getBaseClassInfo(const CXXRecordDecl *Class,
 
   return {};
 }
-
-static std::string getClassNameAsString(const CXXRecordDecl *RD) {
-  std::stringstream SS;
-
-  if (RD->isClass())
-    SS << "class ";
-  else if (RD->isStruct())
-    SS << "struct ";
-
-  SS << RD->getDeclName().getAsString();
-  return SS.str();
-}
-
-inline const CXXRecordDecl *getBaseDecl(const clang::CXXBaseSpecifier &Base) {
-  const QualType &BaseType = Base.getType();
-
-  BaseType->dump();
-
-  if (const auto *TST =
-          dyn_cast<TemplateSpecializationType>(BaseType.getTypePtr())) {
-    return cast<CXXRecordDecl>(
-        TST->getTemplateName().getAsTemplateDecl()->getTemplatedDecl());
-  }
-
-  const auto *BaseDecl = BaseType->getAsCXXRecordDecl();
-  if (const auto *TS = dyn_cast<ClassTemplateSpecializationDecl>(BaseDecl)) {
-    BaseDecl = TS->getSpecializedTemplate()->getTemplatedDecl();
-  }
-
-  return BaseDecl;
-}
-
 } // namespace
 
 void InheritanceChecker::reportChangeInBaseClassOrder(
