@@ -1,10 +1,8 @@
-#include <iostream>
 #include <memory>
 
 #include "clang/Tooling/CompilationDatabase.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/InitLLVM.h"
-#include "llvm/Support/TargetSelect.h"
 
 #include "Abicorn.h"
 #include "AbicornContext.h"
@@ -14,7 +12,8 @@ using namespace llvm;
 using namespace abicorn;
 using namespace clang::tooling;
 
-static std::unique_ptr<CompilationDatabase>
+namespace {
+std::unique_ptr<CompilationDatabase>
 extractCompilationDB(int Argc, const char **Argv,
                      std::vector<std::string> Sources, StringRef BuildPath) {
   std::string ErrorStr;
@@ -42,39 +41,40 @@ extractCompilationDB(int Argc, const char **Argv,
   return CompilationDB;
 };
 
-static cl::OptionCategory ToolCategory("abicorn options");
+cl::OptionCategory ToolCategory("abicorn options");
 
-static cl::opt<std::string>
+cl::opt<std::string>
     OldBuildPath("p-old",
                  cl::desc("Path to the build directory of the old library"),
                  cl::Optional, cl::cat(ToolCategory));
 
-static cl::opt<std::string>
+cl::opt<std::string>
     NewBuildPath("p-new",
                  cl::desc("Path to the build directory of the new library"),
                  cl::Optional, cl::cat(ToolCategory));
 
-static cl::list<std::string>
+cl::list<std::string>
     OldInputFilenames("old", cl::desc("<Old source 0> [... <Old source N>]"),
                       cl::Positional, cl::cat(ToolCategory));
 
-static cl::list<std::string>
+cl::list<std::string>
     NewInputFilenames("new", cl::desc("<New source 0> [... <New source N>]"),
                       cl::Positional, cl::cat(ToolCategory));
 
-static cl::list<std::string>
+cl::list<std::string>
     OldInputSettings("s-old", cl::desc("<Setting 0> [... <Setting N>]"),
                      cl::Optional, cl::PositionalEatsArgs,
                      cl::cat(ToolCategory));
 
-static cl::list<std::string>
+cl::list<std::string>
     NewInputSettings("s-new", cl::desc("<Setting 0> [... <Setting N>]"),
                      cl::Optional, cl::PositionalEatsArgs,
                      cl::cat(ToolCategory));
 
-static cl::opt<bool> NoColors("no-color",
-                              cl::desc("Emit warnings that are not colorful"),
-                              cl::cat(ToolCategory));
+cl::opt<bool> NoColors("no-color",
+                       cl::desc("Emit warnings that are not colorful"),
+                       cl::cat(ToolCategory));
+} // namespace
 
 int main(int argc, const char **argv) {
   InitLLVM X(argc, argv);
