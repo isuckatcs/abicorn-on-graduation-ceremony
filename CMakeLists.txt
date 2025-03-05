@@ -18,26 +18,6 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 message(STATUS "Found Clang ${Clang_PACKAGE_VERSION}")
 message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
 
-set(Clang_INSTALL_DIR ${CLANG_INSTALL_PREFIX})
-
-if(NOT Clang_INSTALL_DIR)
-    set(Clang_INSTALL_DIR ${LLVM_BINARY_DIR})
-endif()
-
-message(STATUS "Using LLVM/Clang from: ${Clang_INSTALL_DIR}")
-
-# version dir can appear in multiple forms (e.g.: 14.0.6 or 16), so do the lookup based on the major version
-file(GLOB CLANG_STDLIB_PATH "${Clang_INSTALL_DIR}/lib/clang/${LLVM_VERSION_MAJOR}*/include")
-list(LENGTH CLANG_STDLIB_PATH PATH_LENGTH)
-
-if("${PATH_LENGTH}" GREATER "1")
-    message(FATAL_ERROR "More than 1 resource path to clang found with version ${LLVM_VERSION_MAJOR}.\n${CLANG_STDLIB_PATH}")
-endif()
-
-# pass it down to the app to configure the compiler accordingly
-message(STATUS "Using Clang stdlib: ${CLANG_STDLIB_PATH}")
-add_definitions(-DCLANG_STDLIB_PATH="${CLANG_STDLIB_PATH}")
-
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CLANG_INCLUDE_DIRS})
 include_directories("./include")
@@ -54,7 +34,7 @@ endif()
 add_subdirectory(src)
 add_subdirectory(test)
 
-if(BUILD_UNITTESTS)
+if(BUILD_UNIT_TESTS)
     set(GTest_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third-party/googletest")
 
     message(STATUS "Configuring googletest")
