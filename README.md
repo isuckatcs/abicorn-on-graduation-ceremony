@@ -11,65 +11,62 @@ It's exactly like those graduation gift balloons, except this is a Clang Tool th
 
 ## 🦄 Get Started 🦄
 
-This guide assumes that the project is being built on Linux* but equivalent steps can be performed on any other operating system.
+This guide assumes that the project is being built on Linux but equivalent steps can be performed on any other operating system.
 
-1. Clone the third-party dependencies
-    ```
-    git submodule init && git submodule update
-    ```
 
-2. Install CMake 3.13.4 or newer
+1. Install CMake 3.13.4 or newer
     ```
     apt-get install cmake
     ```
 
-3. Create a build directory for LLVM and enter that directory
+2. Install LLVM and Clang
     ```
-    mkdir third-party/llvm/build && cd third-party/llvm/build
+    apt-get install llvm clang
     ```
+    The project requires **LLVM 17.0.0**. Later versions are not guaranteed to work, while older versions are guaranteed to not work.
 
-4. Configure and build the Clang Tools dependency
-    ```
-    cmake ../llvm                                                \
-      -DLLVM_ENABLE_PROJECTS="clang"           \
-      -DLLVM_TARGETS_TO_BUILD="host"                             \
-      -DCMAKE_BUILD_TYPE=MinSizeRel &&                           \
-    cmake --build .
-    ```
-
-5. Create a build directory and enter that directory
+3. Create a build directory and enter that directory
     ```
     mkdir build && cd build
     ```
 
-6. Configure and build the project
+4. Configure and build the project
    ```
-   cmake ../ -DLLVM_BUILD_DIR="../third-party/llvm/build" && cmake --build .
+   cmake path/to/repo/root && cmake --build .
    ```
 
 To run the tests, proceed with these following optional steps.
 
-7. Install Python 3.10 or newer
+5. Install Python 3.10 or newer
     ```
     apt-get install python
     ```
 
-8. Install the required dependencies
+6. Install the required dependencies
     ```
-    pip install lit
-    ```
-
-9. Run the `unit` target with CMake
-    ```
-    cmake --build . --target unit
+    pip install -r ./test/requirements.txt
     ```
 
-10. Run the `test` target with CMake
+7. Run the `test` target with CMake
     ```
     cmake --build . --target test
     ```
+To run the unit tests, proceed with the following still optional steps.
 
-\* tested on Ubuntu 22.04.3 LTS
+8. Clone the third-party dependencies
+    ```
+    git submodule init && git submodule update
+    ```
+
+9. Enable building the unit tests with CMake
+    ```
+    cmake -DBUILD_UNIT_TESTS=On .
+    ```
+
+10. Run the `unit` target with CMake
+    ```
+    cmake --build . --target unit
+    ```
 
 ## 🎓 Running the Tool 🎓
 
@@ -104,33 +101,40 @@ The tool doesn't rely on any compiler specific implementation details, only on t
 
 - Classes
   - Removing/renaming a record type with external linkage
+  - Removing class template specializations with external linkage
   - Adding/removing the `final` specifier of a class declaration
   - Adding/removing/reordering base classes
-  - Change in class size
+  - Changing the virtuality of base classes
+  - Changing inheritance access specifiers
+  - Changing the size of the class
 - Fields
+  - Adding/removing fields
   - Changing the type of a field
   - Changing the order of fields
   - Changing the access modifier of a field
   - Adding/removing the `static` specifier of a field
 - Methods
+  - Adding/removing methods
   - Adding/remvoing the `const` specifier of a method
   - Adding/remvoing the `volatile` specifier of a method
   - Adding/remvoing the `static` specifier of a method
   - Adding/remvoing the `inline` specifier of a method
+  - Marking a method deleted
   - Chaning the signature of a method
   - Changing the ref-qualifier of a method
   - Changing the access modifier of a method
   - Moving the definition of a method into the body of its class
-  - Adding/removing/reordering virtual methods in a class
+  - Adding/removing/reordering virtual methods
   - Adding/remvoing the `final` specifier of a virtual method
   - Changing the virtuality of an existing function
 - Functions
   - Removing/renaming a function with external linkage
+  - Removing function template specializations with external linkage
   - Changing the linkage of a function
   - Adding/removing the `inline` specifier
   - Changing the signature of the function
-  - Changing template arguments of an explicit function template specialization
 - Global Variables
   - Removing/renaming a global variable with external linkage
+  - Removing template specializations of global variables with external linkage
   - Changing the linkage of a global variable
   - Changing the type of a global variable
