@@ -86,7 +86,11 @@ void AbicornHash::Impl::addDeclContext(const DeclContext *DC) {
 void AbicornHash::Impl::addTemplateDecl(const TemplateDecl *TD) {
   Hash.AddBoolean(TD);
   if (TD) {
-    Hash.AddTemplateParameterList(TD->getTemplateParameters());
+    for (auto &&D : TD->getTemplateParameters()->asArray()) {
+      size_t K = D->getKind();
+      for (int I = 0; I < sizeof(size_t); ++I)
+        Hash.AddBoolean((1 << I) & K);
+    }
   }
 }
 

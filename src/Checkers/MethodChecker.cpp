@@ -228,7 +228,9 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
       std::string OldDeclName = OldMethod->getDeclName().getAsString();
       std::string NewDeclName = NewMethod->getDeclName().getAsString();
 
-      if (OldDeclName != NewDeclName)
+      if ((!isa<CXXConstructorDecl>(OldMethod) ||
+           !isa<CXXConstructorDecl>(NewMethod)) &&
+          OldDeclName != NewDeclName)
         continue;
 
       Overloads.emplace_back(NewMethod);
