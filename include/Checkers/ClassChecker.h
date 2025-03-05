@@ -18,6 +18,7 @@ public:
 private:
   void reportMissingClass(const CXXRecordDecl *RD);
   bool hasAnonymousFields(const CXXRecordDecl *RD);
+  bool hasVirtualMethods(const CXXRecordDecl *RD);
 
   void checkFinalityMismatch(const CXXRecordDecl *Traversed,
                              const CXXRecordDecl *Cached);

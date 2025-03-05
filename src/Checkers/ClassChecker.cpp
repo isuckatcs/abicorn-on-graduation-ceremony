@@ -35,9 +35,21 @@ bool ClassChecker::hasAnonymousFields(const CXXRecordDecl *RD) {
   return false;
 }
 
+bool ClassChecker::hasVirtualMethods(const CXXRecordDecl *RD) {
+  for (auto &&Method : RD->methods())
+    if (Method->isVirtual())
+      return true;
+
+  return false;
+}
+
 void ClassChecker::checkFinalityMismatch(const CXXRecordDecl *Traversed,
                                          const CXXRecordDecl *Cached) {
   if (Traversed->isEffectivelyFinal() == Cached->isEffectivelyFinal())
+    return;
+
+  // Making a final class without virtual methods non-final is allowed.
+  if (!hasVirtualMethods(Traversed) && Traversed->isEffectivelyFinal())
     return;
 
   std::string Name = Cached->getNameAsString();
