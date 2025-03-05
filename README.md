@@ -5,7 +5,7 @@
 <br>
 </div>
 
-![cover](img/definitely_not_ai_generated_cover.png)
+![cover](img/definitely_not_ai_generated_cover.jpg)
 
 It's exactly like those graduation gift balloons, except this is a Clang Tool that detects library-level API and ABI compatibility breaking changes based on source code.
 
