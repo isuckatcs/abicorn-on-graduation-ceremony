@@ -114,7 +114,7 @@ The tool doesn't rely on any compiler specific implementation details, only on t
   - Changing the access modifier of a field
   - Adding/removing the `static` specifier of a field
 - Methods
-  - Adding/removing methods
+  - Removing methods
   - Adding/remvoing the `const` specifier of a method
   - Adding/remvoing the `volatile` specifier of a method
   - Adding/remvoing the `static` specifier of a method
