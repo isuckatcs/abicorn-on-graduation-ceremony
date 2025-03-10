@@ -22,6 +22,54 @@ inline DiagnosticBuilder reportASTBuildError(DiagnosticsEngine &DiagEng) {
   return DiagEng.Report(ID);
 }
 
+class AbicornDiagConsumer : public TextDiagnosticPrinter {
+  raw_ostream &OS;
+  std::unordered_set<size_t> SeenMessages;
+
+  std::string Hash;
+  std::string Buffer;
+  llvm::raw_string_ostream MS{Buffer};
+
+  void flushBuffer() {
+    if (SeenMessages.emplace(llvm::hash_value(Hash)).second)
+      OS << Buffer;
+
+    Hash.clear();
+    Buffer.clear();
+  }
+
+public:
+  AbicornDiagConsumer(raw_ostream &Os, DiagnosticOptions *Diags,
+                      bool OwnsOutputStream = false)
+      : TextDiagnosticPrinter(MS, Diags, OwnsOutputStream), OS(Os) {
+    MS.enable_colors(true);
+  }
+
+  ~AbicornDiagConsumer() override {
+    if (!Buffer.empty())
+      flushBuffer();
+  }
+
+  void HandleDiagnostic(DiagnosticsEngine::Level Level,
+                        const clang::Diagnostic &Info) override {
+    if (Level != DiagnosticsEngine::Level::Note)
+      flushBuffer();
+
+    SmallString<100> Msg;
+    Info.FormatDiagnostic(Msg);
+
+    llvm::raw_svector_ostream MS(Msg);
+    MS << '@';
+    if (Info.getLocation().isValid())
+      Info.getLocation().print(MS, Info.getSourceManager());
+    MS << '\n';
+
+    Hash += MS.str();
+
+    TextDiagnosticPrinter::HandleDiagnostic(Level, Info);
+  };
+};
+
 bool buildASTs(const std::vector<std::string> &SourcePaths,
                const CompilationDatabase &CompilationDB,
                DiagnosticsEngine &DiagEng,
@@ -92,7 +140,7 @@ void runAbicorn(AbicornContext &Context, const AbicornOptions &Options,
                 const std::vector<std::string> &NewPaths) {
   IntrusiveRefCntPtr<DiagnosticOptions> Opts(new DiagnosticOptions());
   Opts->ShowColors = Options.UseColor;
-  auto *DiagConsumer = new TextDiagnosticPrinter(llvm::errs(), Opts.get());
+  auto *DiagConsumer = new AbicornDiagConsumer(llvm::errs(), Opts.get());
   std::unique_ptr<DiagnosticsEngine> DiagEng(
       new DiagnosticsEngine(new DiagnosticIDs{}, Opts, DiagConsumer));
 

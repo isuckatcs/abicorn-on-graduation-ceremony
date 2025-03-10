@@ -1,0 +1,1 @@
+// RUN: abicorn --no-color --old old1.cpp old2.cpp --new new.cpp -- 2>&1 | filecheck new.cpp
