@@ -8,4 +8,7 @@ private:
 
 protected:
   static float z() { return 2.f; }
+
+public:
+  void leak() { y(); }
 };

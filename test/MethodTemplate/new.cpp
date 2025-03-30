@@ -1,11 +1,11 @@
 template<typename T>
-class c {
+struct c {
   T x() const;
   void y();
 };
 
 template<>
-class c<int>{
+struct c<int>{
   int x() const;
   void y();
 };
@@ -16,3 +16,4 @@ class c<int>{
 // CHECK-NEXT: new.cpp:10:8: note: found similar method [method-checker]
 // CHECK-NEXT:   void y();
 // CHECK-NEXT:        ^
+// CHECK-NOT: {{.*}}

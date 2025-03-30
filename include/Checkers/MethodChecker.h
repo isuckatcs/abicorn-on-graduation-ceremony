@@ -2,7 +2,6 @@
 #define ABICORN_METHOD_CHECKER_H
 
 #include <string>
-#include <vector>
 
 #include "Checker.h"
 #include "LibData.hpp"
@@ -21,6 +20,8 @@ public:
   void check(const MatchFinder::MatchResult &Result) override;
 
 private:
+  std::set<const Decl *> leakedPrivateMethods(const CXXRecordDecl *Record);
+
   void checkMethodChanges(const CXXMethodDecl *Old, const CXXMethodDecl *New);
 
   void reportMissingMethod(const CXXMethodDecl *Decl);

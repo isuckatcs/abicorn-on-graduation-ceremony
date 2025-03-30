@@ -1,3 +1,5 @@
+#include "clang/Analysis/CallGraph.h"
+
 #include "Checkers/MethodChecker.h"
 #include "Matchers/Matchers.h"
 #include "Utils/Hash.h"
@@ -196,6 +198,45 @@ void MethodChecker::checkDefaultConstructor(const CXXRecordDecl *OldRecord,
   }
 }
 
+std::set<const Decl *>
+MethodChecker::leakedPrivateMethods(const CXXRecordDecl *Record) {
+  CallGraph CG;
+  std::deque<const CXXMethodDecl *> Q;
+
+  for (auto &&Method : Record->methods()) {
+    if (Method->getAccess() == clang::AS_public ||
+        Method->getAccess() == clang::AS_protected && Method->isInlined())
+      Q.emplace_back(Method);
+
+    CG.addToCallGraph(Method);
+  }
+
+  std::set<const Decl *> Out;
+
+  while (!Q.empty()) {
+    const CXXMethodDecl *MD = Q.front();
+    Q.pop_front();
+
+    const CallGraphNode *Node = CG.getNode(MD);
+    if (!Node)
+      continue;
+
+    for (auto &&CR : Node->callees()) {
+      const auto *Callee = dyn_cast<CXXMethodDecl>(CR.Callee->getDecl());
+      if (!Callee)
+        continue;
+
+      if (Callee->getAccess() == clang::AS_private)
+        Out.emplace(Callee);
+
+      if (Callee->isInlined())
+        Q.emplace_back(Callee);
+    }
+  }
+
+  return Out;
+}
+
 void MethodChecker::check(const MatchFinder::MatchResult &Result) {
   const auto *OldRecord =
       Result.Nodes.getNodeAs<clang::CXXRecordDecl>(GeneralRecordMatcher::Id);
@@ -219,7 +260,13 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
   AbicornHash Hash;
   std::set<const CXXMethodDecl *> PerfectMatches;
 
+  const auto &LeakedPrivateMethods = leakedPrivateMethods(OldRecord);
+
   for (const auto *OldMethod : OldMethods) {
+    if (OldMethod->getAccess() == clang::AS_private &&
+        !LeakedPrivateMethods.count(OldMethod))
+      continue;
+
     MatchType BestMatchType = Unknown;
     const clang::CXXMethodDecl *BestMatch = nullptr;
     std::vector<const clang::CXXMethodDecl *> Overloads;

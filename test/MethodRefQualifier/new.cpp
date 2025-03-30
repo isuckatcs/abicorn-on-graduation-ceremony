@@ -1,4 +1,4 @@
-class C {
+struct S {
   void a() &;
 
   void b() &&;
@@ -53,3 +53,4 @@ class C {
 // CHECK-NEXT: new.cpp:11:8: note: method 'e' is marked with no ref-qualifier in the new library [method-checker]
 // CHECK-NEXT:   void e();
 // CHECK-NEXT:        ^
+// CHECK-NOT: {{.*}}
