@@ -1,4 +1,4 @@
-struct c {
+class c {
   int x() const { return 0; };
   int y() const { return 0; };
   int deleted();
@@ -7,6 +7,6 @@ struct c {
   c(int x){};
 };
 
-struct c2 {
+class c2 {
   c2(){};
 };

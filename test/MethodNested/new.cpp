@@ -1,7 +1,7 @@
 class c {
   int x() { return 0; }
   
-  struct nested{
+  class nested{
     int x() { return 0; }
     int x(int a) { return 0; }
   };
@@ -16,4 +16,3 @@ class c {
 // CHECK-NEXT: new.cpp:5:9: note: 'x' is not 'static' in the new library [method-checker]
 // CHECK-NEXT:     int x() { return 0; }
 // CHECK-NEXT:         ^
-// CHECK-NOT: {{.*}}

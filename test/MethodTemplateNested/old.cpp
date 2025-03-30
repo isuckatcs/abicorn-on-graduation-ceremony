@@ -2,7 +2,7 @@ template<typename T>
 class c {
   int x;
 
-  struct nested {
+  class nested {
     T x() const;
   };
 };
@@ -11,7 +11,7 @@ class d {
   int y;
 
   template<typename T>
-  struct nested {
+  class nested {
     T y() const;
   };
 };

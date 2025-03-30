@@ -1,11 +1,11 @@
 template<typename T>
-struct c {
+class c {
   T x() const;
   void y();
 };
 
 template<>
-struct c<int>{
+class c<int>{
   int x() const;
   void y(int);
 };

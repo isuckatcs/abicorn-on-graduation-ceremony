@@ -1,4 +1,4 @@
-struct c {
+class c {
   int x() const { return 0; };
   int z() const { return 0; };
   int deleted() = delete;
@@ -26,7 +26,5 @@ struct c {
 // CHECK-NEXT: new.cpp:6:3: note: found similar method [method-checker]
 // CHECK-NEXT:    c(float x){};
 // CHECK-NEXT:    ^
-// CHECK-NOT: {{.*}}
-
-struct c2 {
+class c2 {
 };

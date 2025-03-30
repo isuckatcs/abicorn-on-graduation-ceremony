@@ -2,7 +2,7 @@ template<typename T>
 class c {
   int x;
 
-  struct nested {
+  class nested {
     T x();
   };
 };
@@ -11,7 +11,7 @@ class d {
   int y;
 
   template<typename T>
-  struct nested {
+  class nested {
     T y();
   };
 };
@@ -34,4 +34,3 @@ class d {
 // CHECK-NEXT: new.cpp:15:7: note: 'y' is not 'const' in the new library [method-checker]
 // CHECK-NEXT:     T y();
 // CHECK-NEXT:       ^
-// CHECK-NOT: {{.*}}

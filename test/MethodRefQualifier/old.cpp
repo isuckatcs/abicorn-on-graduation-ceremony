@@ -1,4 +1,4 @@
-struct S {
+class C {
   void a() &;
   void a() &&;
 

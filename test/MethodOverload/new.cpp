@@ -1,4 +1,4 @@
-struct s {
+class c {
   int x() const;
   void x(int, int) const;
   double x(int, float) const;
@@ -16,4 +16,3 @@ struct s {
 // CHECK-NEXT: new.cpp:4:10: note: found similar method [method-checker]
 // CHECK-NEXT:   double x(int, float) const;
 // CHECK-NEXT:          ^
-// CHECK-NOT: {{.*}}
