@@ -1,3 +1,5 @@
+#include "clang/Analysis/CallGraph.h"
+
 #include "Checkers/MethodChecker.h"
 #include "Matchers/Matchers.h"
 #include "Utils/Hash.h"
@@ -196,6 +198,57 @@ void MethodChecker::checkDefaultConstructor(const CXXRecordDecl *OldRecord,
   }
 }
 
+std::unordered_set<const Decl *>
+MethodChecker::leakedPrivateMethods(const CXXRecordDecl *Record) {
+  struct MethodCallCollector : public RecursiveASTVisitor<MethodCallCollector> {
+    bool shouldVisitTemplateInstantiations() const { return true; }
+
+    bool VisitCallExpr(CallExpr *CE) {
+      if (auto *Callee = dyn_cast_or_null<CXXMethodDecl>(CE->getCalleeDecl()))
+        Calls.emplace(Callee);
+
+      return true;
+    }
+
+    std::unordered_set<CXXMethodDecl *> Calls;
+  };
+
+  std::deque<CXXMethodDecl *> Q;
+
+  for (auto &&Method : Record->methods()) {
+    if (Method->getAccess() == clang::AS_public ||
+        Method->getAccess() == clang::AS_protected && Method->isInlined())
+      Q.emplace_back(Method);
+  }
+
+  std::unordered_set<const Decl *> Out;
+  std::unordered_set<const Decl *> Visited;
+
+  while (!Q.empty()) {
+    CXXMethodDecl *MD = Q.front();
+    Q.pop_front();
+
+    if (!Visited.emplace(MD).second)
+      continue;
+
+    MethodCallCollector Collector;
+    Collector.TraverseDecl(MD);
+
+    for (auto &&Callee : Collector.Calls) {
+      if (Callee->getParent() != Record)
+        continue;
+
+      if (Callee->getAccess() == clang::AS_private)
+        Out.emplace(Callee);
+
+      if (Callee->isInlined())
+        Q.emplace_back(Callee);
+    }
+  }
+
+  return Out;
+}
+
 void MethodChecker::check(const MatchFinder::MatchResult &Result) {
   const auto *OldRecord =
       Result.Nodes.getNodeAs<clang::CXXRecordDecl>(GeneralRecordMatcher::Id);
@@ -219,7 +272,13 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
   AbicornHash Hash;
   std::set<const CXXMethodDecl *> PerfectMatches;
 
+  const auto &LeakedPrivateMethods = leakedPrivateMethods(OldRecord);
+
   for (const auto *OldMethod : OldMethods) {
+    if (OldMethod->getAccess() == clang::AS_private &&
+        !LeakedPrivateMethods.count(OldMethod))
+      continue;
+
     MatchType BestMatchType = Unknown;
     const clang::CXXMethodDecl *BestMatch = nullptr;
     std::vector<const clang::CXXMethodDecl *> Overloads;

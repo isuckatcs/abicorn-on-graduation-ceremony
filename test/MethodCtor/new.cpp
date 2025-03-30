@@ -1,11 +1,11 @@
-class c {};
+struct c {};
 
-class c2 {};
+struct c2 {};
 // CHECK: old.cpp:6:3: warning: method 'c2' not found in the new library [method-checker]
 // CHECK-NEXT:    c2(int) {}
 // CHECK-NEXT:    ^
 
-class c3 {
+struct c3 {
   c3(int) {}
 };
 // CHECK-NEXT: old.cpp:10:3: warning: overload of 'c3' not found in the new library [method-checker]
@@ -14,7 +14,7 @@ class c3 {
 // CHECK-NEXT: new.cpp:[[# @LINE - 5 ]]:3: note: found similar method [method-checker]
 // CHECK-NEXT:    c3(int) {}
 // CHECK-NEXT:    ^
-class c4 {
+struct c4 {
   c4() {}
   c4(int) {}
 };
@@ -26,7 +26,8 @@ class c5 {
 // CHECK-NEXT:  class c5 {
 // CHECK-NEXT:        ^
 
-class c6 {
+struct c6 {
+private:
   c6(){};
 };
 // CHECK-NEXT: new.cpp:[[# @LINE - 2 ]]:3: warning: change in the access modifier of method 'c6' [method-checker]
@@ -47,7 +48,7 @@ private:
 // CHECK-NEXT:    s1(){};
 // CHECK-NEXT:    ^
 
-class c7 {
+struct c7 {
   c7() = delete;
 };
 // CHECK-NEXT: new.cpp:[[# @LINE - 2 ]]:3: warning: method 'c7' is marked deleted in the new library [method-checker]
@@ -57,9 +58,10 @@ class c7 {
 // CHECK-NEXT:    c7() {}
 // CHECK-NEXT:    ^
 
-class c8 {
+struct c8 {
   c8() = delete;
 };
 // CHECK-NEXT: new.cpp:[[# @LINE - 2 ]]:3: warning: the default constructor of 'c8' is deleted in the new library [method-checker]
 // CHECK-NEXT:    c8() = delete;
 // CHECK-NEXT:    ^
+// CHECK-NOT: {{.*}}

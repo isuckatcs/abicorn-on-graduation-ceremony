@@ -8,6 +8,9 @@ private:
 
 protected:  
   float z() { return 2.f; }
+
+public:
+  void leak() { y(); }
 };
 
 // CHECK: new.cpp:3:7: warning: change in the 'inline' qualifier of 'x' [method-checker]
@@ -55,3 +58,4 @@ protected:
 // CHECK-NEXT: new.cpp:10:9: note: 'z' is not 'static' in the new library [method-checker]
 // CHECK-NEXT:   float z() { return 2.f; }
 // CHECK-NEXT:         ^
+// CHECK-NOT: {{.*}}

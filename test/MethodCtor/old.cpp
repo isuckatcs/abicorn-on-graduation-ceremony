@@ -1,30 +1,30 @@
-class c {
+struct c {
   c() {}
 };
 
-class c2 {
+struct c2 {
   c2(int) {}
 };
 
-class c3 {
+struct c3 {
   c3() {}
 };
 
-class c4 {
+struct c4 {
   c4() {}
 };
 
 class c5 {};
 
-class c6 {
+struct c6 {
 public:
   c6() {}
 };
 
 struct s1 {};
 
-class c7 {
+struct c7 {
   c7() {}
 };
 
-class c8 {};
+struct c8 {};

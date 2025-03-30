@@ -7,6 +7,9 @@ protected:
 
 public:
   float z() { return 2.f; }
+
+public:
+  void leak() { y(); }
 };
 
 // CHECK: new.cpp:3:7: warning: change in the access modifier of method 'x' [method-checker]
@@ -36,3 +39,4 @@ public:
 // CHECK-NEXT: new.cpp:9:9: note: method 'z' is declared 'public' in the new library [method-checker]
 // CHECK-NEXT:   float z() { return 2.f; }
 // CHECK-NEXT:         ^
+// CHECK-NOT: {{.*}}
