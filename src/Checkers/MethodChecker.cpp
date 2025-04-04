@@ -292,7 +292,8 @@ void MethodChecker::check(const MatchFinder::MatchResult &Result) {
           OldDeclName != NewDeclName)
         continue;
 
-      Overloads.emplace_back(NewMethod);
+      if (!NewMethod->isImplicit())
+        Overloads.emplace_back(NewMethod);
 
       // This method is already found in the old library, so we ignore it.
       if (PerfectMatches.count(NewMethod))
