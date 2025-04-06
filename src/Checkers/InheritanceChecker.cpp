@@ -21,13 +21,13 @@ struct BaseClassInfo {
 BaseClassInfo getBaseClassInfo(const CXXRecordDecl *Class,
                                const CXXBaseSpecifier &Base) {
   ODRHash BaseHash;
-  BaseHash.AddQualType(Base.getType());
+  BaseHash.AddQualType(Base.getType().getCanonicalType());
   size_t BaseHashVal = BaseHash.CalculateHash();
 
   int Idx = 0;
   for (auto &&B : Class->bases()) {
     ODRHash CachedHash;
-    CachedHash.AddQualType(B.getType());
+    CachedHash.AddQualType(B.getType().getCanonicalType());
 
     if (CachedHash.CalculateHash() == BaseHashVal) {
       return {B, Idx, true};

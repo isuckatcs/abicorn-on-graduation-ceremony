@@ -65,8 +65,8 @@ void GlobalVariableChecker::check(const MatchFinder::MatchResult &Result) {
   const VarDecl *CachedVD = *ReachableGlobalsInNew.find(VD);
 
   ODRHash HashCur, HashCached;
-  HashCur.AddQualType(VD->getType());
-  HashCached.AddQualType(CachedVD->getType());
+  HashCur.AddQualType(VD->getType().getCanonicalType());
+  HashCached.AddQualType(CachedVD->getType().getCanonicalType());
 
   if (HashCur.CalculateHash() != HashCached.CalculateHash())
     reportChangeInType(VD, CachedVD);

@@ -45,10 +45,10 @@ void AbicornHash::Impl::addFunctionDecl(const FunctionDecl *FD) {
   Hash.AddDecl(FD);
   Hash.AddDeclarationName(FD->getDeclName());
 
-  Hash.AddQualType(FD->getReturnType());
+  Hash.AddQualType(FD->getReturnType().getCanonicalType());
   for (auto &P : FD->parameters()) {
     Hash.AddDecl(P);
-    Hash.AddQualType(P->getType());
+    Hash.AddQualType(P->getType().getCanonicalType());
   }
 
   addTemplateDecl(FD->getDescribedFunctionTemplate());
@@ -117,11 +117,11 @@ void AbicornHash::Impl::addTemplateArgs(const TemplateArgumentList *AL) {
 std::size_t GeneralFunctionHasher::operator()(const FunctionDecl *FD) const {
   ODRHash Hash;
 
-  Hash.AddQualType(FD->getReturnType());
+  Hash.AddQualType(FD->getReturnType().getCanonicalType());
   Hash.AddDeclarationName(FD->getDeclName());
   for (auto &P : FD->parameters()) {
     Hash.AddDecl(P);
-    Hash.AddQualType(P->getType());
+    Hash.AddQualType(P->getType().getCanonicalType());
   }
 
   return Hash.CalculateHash();

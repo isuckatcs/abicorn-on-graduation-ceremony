@@ -124,8 +124,8 @@ void FieldChecker::checkTypeEquality(const StringRef Name,
                                      const DeclaratorDecl *Cur,
                                      const DeclaratorDecl *Cached) {
   ODRHash FromHash, ToHash;
-  FromHash.AddQualType(Cur->getType());
-  ToHash.AddQualType(Cached->getType());
+  FromHash.AddQualType(Cur->getType().getCanonicalType());
+  ToHash.AddQualType(Cached->getType().getCanonicalType());
 
   if (FromHash.CalculateHash() != ToHash.CalculateHash()) {
     reportTypeMissmatch(Name, Cur, Cached);
