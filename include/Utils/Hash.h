@@ -37,12 +37,6 @@ private:
   mutable std::map<const void *, std::size_t> Cache;
 };
 
-// A utility that creates a hash based on the return type, name and parameters
-// only.
-struct GeneralFunctionHasher {
-  std::size_t operator()(const FunctionDecl *FD) const;
-};
-
 } // namespace abicorn
 
 #endif // ABICORN_HASH_H

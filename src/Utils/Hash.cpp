@@ -122,17 +122,4 @@ void AbicornHash::Impl::addQualType(QualType T) {
     HelperHash.AddString(T.getAsString());
 }
 
-std::size_t GeneralFunctionHasher::operator()(const FunctionDecl *FD) const {
-  ODRHash Hash;
-
-  Hash.AddQualType(FD->getReturnType().getCanonicalType());
-  Hash.AddDeclarationName(FD->getDeclName());
-  for (auto &P : FD->parameters()) {
-    Hash.AddDecl(P);
-    Hash.AddQualType(P->getType().getCanonicalType());
-  }
-
-  return Hash.CalculateHash();
-}
-
 }; // namespace abicorn

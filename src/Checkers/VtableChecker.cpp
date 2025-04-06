@@ -97,12 +97,13 @@ void VtableChecker::checkAllVirtualMethods(const CXXRecordDecl *OldRecordDecl,
        OldMethodIt != OldRecordDecl->method_end(); ++OldMethodIt) {
     const CXXMethodDecl *OldMethodDecl = *OldMethodIt;
 
-    auto NewMethodIt =
-        std::find_if(NewRecordDecl->method_begin(), NewRecordDecl->method_end(),
-                     [&OldMethodDecl](const CXXMethodDecl *MD) {
-                       GeneralFunctionHasher H1, H2;
-                       return H1(OldMethodDecl) == H2(MD);
-                     });
+    auto NewMethodIt = std::find_if(
+        NewRecordDecl->method_begin(), NewRecordDecl->method_end(),
+        [&OldMethodDecl](const CXXMethodDecl *MD) {
+          return AbicornHash()(OldMethodDecl) == AbicornHash()(MD) &&
+                 OldMethodDecl->isConst() == MD->isConst() &&
+                 OldMethodDecl->getRefQualifier() == MD->getRefQualifier();
+        });
 
     if (NewMethodIt == NewRecordDecl->method_end()) {
       if (OldMethodDecl->isVirtual())
