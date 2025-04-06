@@ -1,0 +1,1 @@
+// RUN: abicorn --no-color --old old.h --new new.h -- 2>&1 | filecheck new.h

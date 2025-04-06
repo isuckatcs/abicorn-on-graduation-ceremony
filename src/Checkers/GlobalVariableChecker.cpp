@@ -47,7 +47,8 @@ void GlobalVariableChecker::check(const MatchFinder::MatchResult &Result) {
   const auto *VD =
       Result.Nodes.getNodeAs<clang::VarDecl>(GlobalStorageVariableMatcher::Id);
 
-  if (!VD || VD->getNameAsString().empty() || !VD->hasExternalFormalLinkage())
+  if (!VD || VD->getNameAsString().empty() || !VD->hasExternalFormalLinkage() ||
+      VD->getCanonicalDecl() != VD)
     return;
 
   const auto &ReachableGlobalsInNew = Data->getReachableGlobalVariables();
