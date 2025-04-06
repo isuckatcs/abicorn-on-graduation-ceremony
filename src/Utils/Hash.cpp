@@ -32,6 +32,8 @@ std::size_t AbicornHash::operator()(const VarDecl *VD) const {
 }
 
 void AbicornHash::Impl::addRecordDecl(const CXXRecordDecl *RD) {
+  setPP(RD);
+
   Hash.AddDecl(RD);
   Hash.AddDeclarationName(RD->getDeclName());
 
@@ -42,6 +44,8 @@ void AbicornHash::Impl::addRecordDecl(const CXXRecordDecl *RD) {
 }
 
 void AbicornHash::Impl::addFunctionDecl(const FunctionDecl *FD) {
+  setPP(FD);
+
   Hash.AddDecl(FD);
   Hash.AddDeclarationName(FD->getDeclName());
 
@@ -58,6 +62,8 @@ void AbicornHash::Impl::addFunctionDecl(const FunctionDecl *FD) {
 }
 
 void AbicornHash::Impl::addVarDecl(const VarDecl *VD) {
+  setPP(VD);
+
   Hash.AddDecl(VD);
   Hash.AddDeclarationName(VD->getDeclName());
 
@@ -69,6 +75,11 @@ void AbicornHash::Impl::addVarDecl(const VarDecl *VD) {
 
 std::size_t AbicornHash::Impl::calculateHash() {
   return Hash.CalculateHash() ^ HelperHash.ComputeHash();
+}
+
+void AbicornHash::Impl::setPP(const Decl *D) {
+  PP = std::make_unique<PrintingPolicy>(D->getLangOpts());
+  PP->AnonymousTagLocations = false;
 }
 
 void AbicornHash::Impl::addDeclContext(const DeclContext *DC) {
@@ -118,8 +129,8 @@ void AbicornHash::Impl::addTemplateArgs(const TemplateArgumentList *AL) {
 
 void AbicornHash::Impl::addQualType(QualType T) {
   Hash.AddQualType(T);
-  if (!T->hasUnnamedOrLocalType())
-    HelperHash.AddString(T.getAsString());
+  if (!T->hasUnnamedOrLocalType() && PP)
+    HelperHash.AddString(T.getAsString(*PP));
 }
 
 }; // namespace abicorn

@@ -38,4 +38,13 @@ auto L = []() {};
 
 template <> struct S3<decltype(L)> {};
 
+template <typename T> struct TT {};
+
+struct S4 {
+  auto foo() {
+    auto L = []() {};
+    return TT<decltype(L)>{};
+  }
+};
+
 // CHECK-NOT: {{.*}}

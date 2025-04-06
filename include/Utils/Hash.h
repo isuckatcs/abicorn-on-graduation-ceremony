@@ -21,6 +21,7 @@ private:
     std::size_t calculateHash();
 
   private:
+    void setPP(const Decl *D);
     void addDeclContext(const DeclContext *DC);
 
     void addTemplateDecl(const TemplateDecl *TD);
@@ -32,6 +33,7 @@ private:
     // Note: this is needed, because ODRHash can generate the same hash for
     // different types, for some reason.
     llvm::FoldingSetNodeID HelperHash;
+    std::unique_ptr<PrintingPolicy> PP;
   };
 
   mutable std::map<const void *, std::size_t> Cache;

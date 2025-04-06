@@ -1,4 +1,5 @@
 #include "clang/Analysis/CallGraph.h"
+#include <iostream>
 
 #include "Checkers/MethodChecker.h"
 #include "Matchers/Matchers.h"
