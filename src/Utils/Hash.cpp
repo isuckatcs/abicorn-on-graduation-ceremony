@@ -45,10 +45,10 @@ void AbicornHash::Impl::addFunctionDecl(const FunctionDecl *FD) {
   Hash.AddDecl(FD);
   Hash.AddDeclarationName(FD->getDeclName());
 
-  Hash.AddQualType(FD->getReturnType().getCanonicalType());
+  addQualType(FD->getReturnType().getCanonicalType());
   for (auto &P : FD->parameters()) {
     Hash.AddDecl(P);
-    Hash.AddQualType(P->getType().getCanonicalType());
+    addQualType(P->getType().getCanonicalType());
   }
 
   addTemplateDecl(FD->getDescribedFunctionTemplate());
@@ -67,7 +67,9 @@ void AbicornHash::Impl::addVarDecl(const VarDecl *VD) {
   addDeclContext(VD->getDeclContext());
 }
 
-std::size_t AbicornHash::Impl::calculateHash() { return Hash.CalculateHash(); }
+std::size_t AbicornHash::Impl::calculateHash() {
+  return Hash.CalculateHash() ^ HelperHash.ComputeHash();
+}
 
 void AbicornHash::Impl::addDeclContext(const DeclContext *DC) {
   while (DC) {
@@ -86,11 +88,8 @@ void AbicornHash::Impl::addDeclContext(const DeclContext *DC) {
 void AbicornHash::Impl::addTemplateDecl(const TemplateDecl *TD) {
   Hash.AddBoolean(TD);
   if (TD) {
-    for (auto &&D : TD->getTemplateParameters()->asArray()) {
-      size_t K = D->getKind();
-      for (int I = 0; I < sizeof(size_t); ++I)
-        Hash.AddBoolean((1 << I) & K);
-    }
+    for (auto &&D : TD->getTemplateParameters()->asArray())
+      HelperHash.Add(D->getKind());
   }
 }
 
@@ -111,7 +110,16 @@ void AbicornHash::Impl::addTemplateSpecialization(const Decl *D) {
 void AbicornHash::Impl::addTemplateArgs(const TemplateArgumentList *AL) {
   for (const TemplateArgument &TA : AL->asArray()) {
     Hash.AddTemplateArgument(TA);
+
+    if (TA.getKind() == clang::TemplateArgument::Type)
+      addQualType(TA.getAsType().getCanonicalType());
   }
+}
+
+void AbicornHash::Impl::addQualType(QualType T) {
+  Hash.AddQualType(T);
+  if (!T->hasUnnamedOrLocalType())
+    HelperHash.AddString(T.getAsString());
 }
 
 std::size_t GeneralFunctionHasher::operator()(const FunctionDecl *FD) const {

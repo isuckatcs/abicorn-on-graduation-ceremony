@@ -26,8 +26,12 @@ private:
     void addTemplateDecl(const TemplateDecl *TD);
     void addTemplateSpecialization(const Decl *D);
     void addTemplateArgs(const TemplateArgumentList *AL);
+    void addQualType(QualType T);
 
     ODRHash Hash;
+    // Note: this is needed, because ODRHash can generate the same hash for
+    // different types, for some reason.
+    llvm::FoldingSetNodeID HelperHash;
   };
 
   mutable std::map<const void *, std::size_t> Cache;
