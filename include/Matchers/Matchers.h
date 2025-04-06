@@ -5,14 +5,18 @@
 
 namespace abicorn::matchers {
 using namespace clang::ast_matchers;
+AST_MATCHER(clang::VarDecl, isStaticDataMember) {
+  return Node.isStaticDataMember();
+}
 
 struct GlobalStorageVariableMatcher {
   const inline static char *Id = "GlobalStorageVariableMatcher";
 
   const inline static auto Matcher =
-      traverse(
-          clang::TK_IgnoreUnlessSpelledInSource,
-          varDecl(allOf(hasGlobalStorage(), unless(hasParent(recordDecl())))))
+      traverse(clang::TK_IgnoreUnlessSpelledInSource,
+               varDecl(allOf(hasGlobalStorage(),
+                             unless(anyOf(hasParent(recordDecl()),
+                                          isStaticDataMember())))))
           .bind(Id);
 };
 
