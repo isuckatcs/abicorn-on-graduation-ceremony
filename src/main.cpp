@@ -85,9 +85,15 @@ int main(int argc, const char **argv) {
   // will be appended to one of the lists, which we want to avoid. The arguments
   // after -- should only be passed down to the compiler instances.
   std::vector<const char *> FilteredArgv;
+  std::vector<const char *> CommonCompilerSettings;
   for (int I = 0; I < argc; ++I) {
-    if (!strcmp("--", argv[I]))
+    if (!strcmp("--", argv[I])) {
+      ++I;
+      while (I < argc)
+        CommonCompilerSettings.emplace_back(argv[I++]);
+
       break;
+    }
 
     FilteredArgv.emplace_back(argv[I]);
   }
@@ -126,6 +132,11 @@ int main(int argc, const char **argv) {
     NewArgs.push_back("--");
     for (auto &&S : NewInputSettings)
       NewArgs.push_back(S.c_str());
+  }
+
+  for (auto &&S : CommonCompilerSettings) {
+    OldArgs.push_back(S);
+    NewArgs.push_back(S);
   }
 
   // Build the compilation databases.
