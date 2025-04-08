@@ -129,8 +129,19 @@ void AbicornHash::Impl::addTemplateArgs(const TemplateArgumentList *AL) {
 
 void AbicornHash::Impl::addQualType(QualType T) {
   Hash.AddQualType(T);
-  if (!T->hasUnnamedOrLocalType() && PP)
-    HelperHash.AddString(T.getAsString(*PP));
+  if (!T->hasUnnamedOrLocalType() && PP) {
+    const std::string &TypeString = T.getAsString(*PP);
+
+    // Apparently the same type can be rendered with different whitespaces,
+    // so we just remove them.
+    std::string WithoutWhitespaces;
+    for (auto &&C : TypeString)
+      if (C != ' ' && C != '\f' && C != '\n' && C != '\r' && C != '\t' &&
+          C != '\v')
+        WithoutWhitespaces.push_back(C);
+
+    HelperHash.AddString(WithoutWhitespaces);
+  }
 }
 
 }; // namespace abicorn
